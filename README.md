@@ -1,7 +1,8 @@
 # spitewise
 Program to organize group payments and simplify debts.
 
-Command usage: python spitewise.py <inputFilePath> <OptionalSimplifyDebtsBool>
+Command usage: 
+```python spitewise.py inputFilePath [OptionalSimplifyDebtsBool]```
 
 Simplify debts is set to true by default. This option makes it so that you do not make unnecessary transactions. For example, if Alice owes Bob $15, and Bob owes Alice $10, instead of making two transactions, the program will just show that Alice owes Bob $5.
 
