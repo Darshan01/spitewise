@@ -1,0 +1,58 @@
+Darshan owes $48.70
+	Darshan owes Shehzad $10.22
+	Darshan owes Kavya $38.48
+
+	Darshan has paid $1533.21 in total
+
+Deepika owes $185.94
+	Deepika owes Darshan $175.73
+	Deepika owes Shehzad $10.22
+
+	Deepika has paid $0.00 in total
+
+Shehzad owes $176.43
+	Shehzad owes Darshan $169.43
+	Shehzad owes Kavya $7.00
+
+	Shehzad has paid $91.95 in total
+
+Krithish owes $178.65
+	Krithish owes Darshan $168.44
+	Krithish owes Shehzad $10.22
+
+	Krithish has paid $0.00 in total
+
+Sam owes $192.64
+	Sam owes Darshan $168.44
+	Sam owes Shehzad $10.22
+	Sam owes Kavya $13.99
+
+	Sam has paid $0.00 in total
+
+Bargs owes $196.14
+	Bargs owes Darshan $172.43
+	Bargs owes Shehzad $10.22
+	Bargs owes Kavya $13.49
+
+	Bargs has paid $0.00 in total
+
+Ayush owes $196.14
+	Ayush owes Darshan $172.43
+	Ayush owes Shehzad $10.22
+	Ayush owes Kavya $13.49
+
+	Ayush has paid $0.00 in total
+
+Mauli owes $198.64
+	Mauli owes Darshan $168.44
+	Mauli owes Shehzad $10.22
+	Mauli owes Kavya $19.99
+
+	Mauli has paid $0.00 in total
+
+Kavya owes $178.65
+	Kavya owes Darshan $168.44
+	Kavya owes Shehzad $10.22
+
+	Kavya has paid $135.92 in total
+

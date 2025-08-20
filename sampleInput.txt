@@ -1,0 +1,17 @@
+Darshan, Deepika, Shehzad, Krithish, Sam, Bargs, Ayush, Mauli, Kavya
+
+darshan - house - 1008.84
+darshan - rafting - 430.0
+shehzad - costco groceries - 91.95
+darshan - shoprite groceries - 77.1
+kavya - snapple party pack - 17.99 - Bargs, Ayush
+kavya - lemonade - 19.99 - mauli
+kavya - water guns - 20.99 - darshan
+kavya - birthday cake - 8.99 - bargs, Ayush
+kavya - charcuterie board - 18.99 - Kavya
+kavya - gift card - 13.99 - Sam
+kavya - lego set - 13.99 - Shehzad, darshan
+kavya - gift card - 20.99 - Kavya, darshan
+darshan - coke - 7.29 - Deepika
+darshan - virgin pina cola mix - 7.99 - bargs, Ayush
+darshan - mango juice - 1.99 - darshan, shehzad
