@@ -116,9 +116,42 @@ for transaction in file:
         
     lineNum += 1
 
-for row in paymentMatrix:
-    print(row)
-print()
+if simplify:
+    #iterate through each person's list of debts
+    for i in range(len(namesLine)):
+        
+        #iterate through each person they owe money to
+        for j in range(len(namesLine)):
+            
+            if i == j: continue #skip self
+            
+            #if person i doesn't owe person j money, skip
+            # if paymentMatrix[i][j] <= 0: continue
+            
+            for k in range(len(namesLine)):
+                
+                if i == k or j == k: continue
+                
+                #if person i doesn't owe person k money, skip
+                if paymentMatrix[i][k] <= 0: continue
+                
+                #if person k doesn't own person j money, skip
+                if paymentMatrix[k][j] <= 0: continue
+                
+                #if person k owes person j more than or equal to what person i owes person k, settle the debt
+                if paymentMatrix[k][j] >= paymentMatrix[i][k]:
+                    
+                    #person i pays person j the amount they owe person k
+                    paymentMatrix[i][j] += paymentMatrix[i][k] 
+                    paymentMatrix[j][i] -= paymentMatrix[i][k]
+                    
+                    #person k no longer owes person j that money
+                    paymentMatrix[k][j] -= paymentMatrix[i][k]
+                    paymentMatrix[j][k] += paymentMatrix[i][k]
+                    
+                    #person i no longer owes person k money
+                    paymentMatrix[i][k] = 0
+                    paymentMatrix[k][i] = 0
 
 for nameIndex in range(len(namesLine)):
     owed = sum(paymentMatrix[nameIndex]) - paymentMatrix[nameIndex][nameIndex]
