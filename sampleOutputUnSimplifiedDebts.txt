@@ -1,58 +1,67 @@
-Darshan owes $48.70
+Darshan owes:
 	Darshan owes Shehzad $10.22
 	Darshan owes Kavya $38.48
+	For a total of: $48.70
 
-	Darshan has paid $1533.21 in total
+	Darshan spent $1533.21 in total before any debts are settled
 
-Deepika owes $185.94
+Deepika owes:
 	Deepika owes Darshan $175.73
 	Deepika owes Shehzad $10.22
+	For a total of: $185.94
 
-	Deepika has paid $0.00 in total
+	Deepika spent $0.00 in total before any debts are settled
 
-Shehzad owes $176.43
+Shehzad owes:
 	Shehzad owes Darshan $169.43
 	Shehzad owes Kavya $7.00
+	For a total of: $176.43
 
-	Shehzad has paid $91.95 in total
+	Shehzad spent $91.95 in total before any debts are settled
 
-Krithish owes $178.65
+Krithish owes:
 	Krithish owes Darshan $168.44
 	Krithish owes Shehzad $10.22
+	For a total of: $178.65
 
-	Krithish has paid $0.00 in total
+	Krithish spent $0.00 in total before any debts are settled
 
-Sam owes $192.64
+Sam owes:
 	Sam owes Darshan $168.44
 	Sam owes Shehzad $10.22
 	Sam owes Kavya $13.99
+	For a total of: $192.64
 
-	Sam has paid $0.00 in total
+	Sam spent $0.00 in total before any debts are settled
 
-Bargs owes $196.14
+Bargs owes:
 	Bargs owes Darshan $172.43
 	Bargs owes Shehzad $10.22
 	Bargs owes Kavya $13.49
+	For a total of: $196.14
 
-	Bargs has paid $0.00 in total
+	Bargs spent $0.00 in total before any debts are settled
 
-Ayush owes $196.14
+Ayush owes:
 	Ayush owes Darshan $172.43
 	Ayush owes Shehzad $10.22
 	Ayush owes Kavya $13.49
+	For a total of: $196.14
 
-	Ayush has paid $0.00 in total
+	Ayush spent $0.00 in total before any debts are settled
 
-Mauli owes $198.64
+Mauli owes:
 	Mauli owes Darshan $168.44
 	Mauli owes Shehzad $10.22
 	Mauli owes Kavya $19.99
+	For a total of: $198.64
 
-	Mauli has paid $0.00 in total
+	Mauli spent $0.00 in total before any debts are settled
 
-Kavya owes $178.65
+Kavya owes:
 	Kavya owes Darshan $168.44
 	Kavya owes Shehzad $10.22
+	For a total of: $178.65
 
-	Kavya has paid $135.92 in total
+	Kavya spent $135.92 in total before any debts are settled
 
