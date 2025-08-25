@@ -1,67 +1,76 @@
-Darshan owes:
-	Darshan owes Shehzad $10.22
-	Darshan owes Kavya $38.48
-	For a total of: $48.70
+Darshan's summary:
+	Debt summary:
+	- Darshan owes Shehzad $10.22
+	- Darshan owes Kavya $38.48
+	For a total debt of $48.70
 
 	Darshan spent $1533.21 in total before any debts are settled
 
-Deepika owes:
-	Deepika owes Darshan $175.73
-	Deepika owes Shehzad $10.22
-	For a total of: $185.94
+Deepika's summary:
+	Debt summary:
+	- Deepika owes Darshan $175.73
+	- Deepika owes Shehzad $10.22
+	For a total debt of $185.94
 
 	Deepika spent $0.00 in total before any debts are settled
 
-Shehzad owes:
-	Shehzad owes Darshan $169.43
-	Shehzad owes Kavya $7.00
-	For a total of: $176.43
+Shehzad's summary:
+	Debt summary:
+	- Shehzad owes Darshan $169.43
+	- Shehzad owes Kavya $7.00
+	For a total debt of $176.43
 
 	Shehzad spent $91.95 in total before any debts are settled
 
-Krithish owes:
-	Krithish owes Darshan $168.44
-	Krithish owes Shehzad $10.22
-	For a total of: $178.65
+Krithish's summary:
+	Debt summary:
+	- Krithish owes Darshan $168.44
+	- Krithish owes Shehzad $10.22
+	For a total debt of $178.65
 
 	Krithish spent $0.00 in total before any debts are settled
 
-Sam owes:
-	Sam owes Darshan $168.44
-	Sam owes Shehzad $10.22
-	Sam owes Kavya $13.99
-	For a total of: $192.64
+Sam's summary:
+	Debt summary:
+	- Sam owes Darshan $168.44
+	- Sam owes Shehzad $10.22
+	- Sam owes Kavya $13.99
+	For a total debt of $192.64
 
 	Sam spent $0.00 in total before any debts are settled
 
-Bargs owes:
-	Bargs owes Darshan $172.43
-	Bargs owes Shehzad $10.22
-	Bargs owes Kavya $13.49
-	For a total of: $196.14
+Bargs's summary:
+	Debt summary:
+	- Bargs owes Darshan $172.43
+	- Bargs owes Shehzad $10.22
+	- Bargs owes Kavya $13.49
+	For a total debt of $196.14
 
 	Bargs spent $0.00 in total before any debts are settled
 
-Ayush owes:
-	Ayush owes Darshan $172.43
-	Ayush owes Shehzad $10.22
-	Ayush owes Kavya $13.49
-	For a total of: $196.14
+Ayush's summary:
+	Debt summary:
+	- Ayush owes Darshan $172.43
+	- Ayush owes Shehzad $10.22
+	- Ayush owes Kavya $13.49
+	For a total debt of $196.14
 
 	Ayush spent $0.00 in total before any debts are settled
 
-Mauli owes:
-	Mauli owes Darshan $168.44
-	Mauli owes Shehzad $10.22
-	Mauli owes Kavya $19.99
-	For a total of: $198.64
+Mauli's summary:
+	Debt summary:
+	- Mauli owes Darshan $168.44
+	- Mauli owes Shehzad $10.22
+	- Mauli owes Kavya $19.99
+	For a total debt of $198.64
 
 	Mauli spent $0.00 in total before any debts are settled
 
-Kavya owes:
-	Kavya owes Darshan $168.44
-	Kavya owes Shehzad $10.22
-	For a total of: $178.65
+Kavya's summary:
+	Debt summary:
+	- Kavya owes Darshan $168.44
+	- Kavya owes Shehzad $10.22
+	For a total debt of $178.65
 
 	Kavya spent $135.92 in total before any debts are settled
 

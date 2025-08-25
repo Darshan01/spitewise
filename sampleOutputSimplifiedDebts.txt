@@ -1,59 +1,78 @@
-Darshan is owed $1315.08 in total
-	Darshan has paid $1533.21 in total
+Darshan's summary:
+	Credit summary:
+	- Deepika owes Darshan $185.94
+	- Shehzad owes Darshan $94.69
+	- Krithish owes Darshan $178.65
+	- Sam owes Darshan $192.64
+	- Bargs owes Darshan $196.14
+	- Ayush owes Darshan $196.14
+	- Mauli owes Darshan $198.64
+	- Kavya owes Darshan $72.22
+	Darshan is owed $1315.08 in total
+
+	Darshan spent $1533.21 in total before any debts are settled
 	Darshan will have spent $218.13 after debts are settled
 
-Deepika owes:
-	Deepika owes Darshan $185.94
-	For a total of: $185.94
+Deepika's summary:
+	Debt summary:
+	- Deepika owes Darshan $185.94
+	For a total debt of $185.94
 
 	Deepika spent $0.00 in total before any debts are settled
 	Deepika will have spent $185.94 after debts are settled
 
-Shehzad owes:
-	Shehzad owes Darshan $94.69
-	For a total of: $94.69
+Shehzad's summary:
+	Debt summary:
+	- Shehzad owes Darshan $94.69
+	For a total debt of $94.69
 
 	Shehzad spent $91.95 in total before any debts are settled
 	Shehzad will have spent $186.64 after debts are settled
 
-Krithish owes:
-	Krithish owes Darshan $178.65
-	For a total of: $178.65
+Krithish's summary:
+	Debt summary:
+	- Krithish owes Darshan $178.65
+	For a total debt of $178.65
 
 	Krithish spent $0.00 in total before any debts are settled
 	Krithish will have spent $178.65 after debts are settled
 
-Sam owes:
-	Sam owes Darshan $192.64
-	For a total of: $192.64
+Sam's summary:
+	Debt summary:
+	- Sam owes Darshan $192.64
+	For a total debt of $192.64
 
 	Sam spent $0.00 in total before any debts are settled
 	Sam will have spent $192.64 after debts are settled
 
-Bargs owes:
-	Bargs owes Darshan $196.14
-	For a total of: $196.14
+Bargs's summary:
+	Debt summary:
+	- Bargs owes Darshan $196.14
+	For a total debt of $196.14
 
 	Bargs spent $0.00 in total before any debts are settled
 	Bargs will have spent $196.14 after debts are settled
 
-Ayush owes:
-	Ayush owes Darshan $196.14
-	For a total of: $196.14
+Ayush's summary:
+	Debt summary:
+	- Ayush owes Darshan $196.14
+	For a total debt of $196.14
 
 	Ayush spent $0.00 in total before any debts are settled
 	Ayush will have spent $196.14 after debts are settled
 
-Mauli owes:
-	Mauli owes Darshan $198.64
-	For a total of: $198.64
+Mauli's summary:
+	Debt summary:
+	- Mauli owes Darshan $198.64
+	For a total debt of $198.64
 
 	Mauli spent $0.00 in total before any debts are settled
 	Mauli will have spent $198.64 after debts are settled
 
-Kavya owes:
-	Kavya owes Darshan $72.22
-	For a total of: $72.22
+Kavya's summary:
+	Debt summary:
+	- Kavya owes Darshan $72.22
+	For a total debt of $72.22
 
 	Kavya spent $135.92 in total before any debts are settled
 	Kavya will have spent $208.14 after debts are settled

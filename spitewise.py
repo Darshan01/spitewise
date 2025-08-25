@@ -13,6 +13,17 @@ Input file format:
   - SplitAmong: optional comma-separated list of names who are splitting the cost (if omitted, split among all equally)
 """
 
+#helper function to sum only positive or negative values in an iterable
+def sumSign(lis : list[int], positive : bool = True, excludeIndex : int = None) -> int:
+    total = 0
+    for i in range(len(lis)):
+        if excludeIndex is not None and i == excludeIndex: continue
+        if positive and lis[i] > 0:
+            total += lis[i]
+        elif not positive and lis[i] < 0:
+            total += lis[i]
+    return total
+
 import sys
 
 #make sure input file path is provided
@@ -126,7 +137,7 @@ if simplify:
             if i == j: continue #skip self
             
             #if person i doesn't owe person j money, skip
-            # if paymentMatrix[i][j] <= 0: continue
+            if paymentMatrix[i][j] <= 0: continue
             
             for k in range(len(namesLine)):
                 
@@ -153,27 +164,39 @@ if simplify:
                     paymentMatrix[i][k] = 0
                     paymentMatrix[k][i] = 0
 
+    
+#output
 for nameIndex in range(len(namesLine)):
-    owed = sum(paymentMatrix[nameIndex]) - paymentMatrix[nameIndex][nameIndex]
+    owed = -1*sumSign(paymentMatrix[nameIndex], positive=False, excludeIndex=nameIndex)
+    owes = sumSign(paymentMatrix[nameIndex], positive=True, excludeIndex=nameIndex)
     
-    #if they are owed money, show how much and their total expenditure
-    if owed <= 0:
-        print(f"{namesLine[nameIndex]} is owed ${-1*owed:.2f} in total")
-        print(f"\t{namesLine[nameIndex]} has paid ${(paymentMatrix[nameIndex][nameIndex]):.2f} in total")
-        if simplify: print(f"\t{namesLine[nameIndex]} will have spent ${(paymentMatrix[nameIndex][nameIndex] + owed):.2f} after debts are settled")
+    print(f"{namesLine[nameIndex]}'s summary:")
     
-    #if they owe money, show how much, to whom, and their total expenditure
-    if owed > 0:
-        print(f"{namesLine[nameIndex]} owes:")
-        totalDebt = 0
+    #if they owe money, show who they owe it to
+    if owes > 0:
+        print("\tDebt summary:")
         for debt in range(len(namesLine)):
             if paymentMatrix[nameIndex][debt] > 0 and debt != nameIndex:
-                print(f"\t{namesLine[nameIndex]} owes {namesLine[debt]} ${paymentMatrix[nameIndex][debt]:.2f}")
-                totalDebt += paymentMatrix[nameIndex][debt]
-        print(f"\tFor a total of: ${totalDebt:.2f}")
+                print(f"\t- {namesLine[nameIndex]} owes {namesLine[debt]} ${paymentMatrix[nameIndex][debt]:.2f}")
+                
+        print(f"\tFor a total debt of ${owes:.2f}")
         print()
-        print(f"\t{namesLine[nameIndex]} spent ${(paymentMatrix[nameIndex][nameIndex]):.2f} in total before any debts are settled")
-        if simplify: print(f"\t{namesLine[nameIndex]} will have spent ${(paymentMatrix[nameIndex][nameIndex] + owed):.2f} after debts are settled")
+    
+    #if they are owed money, show who owes it to them
+    if owed > 0:
+        print("\tCredit summary:")
+        for debt in range(len(namesLine)):
+            if paymentMatrix[nameIndex][debt] < 0 and debt != nameIndex:
+                print(f"\t- {namesLine[debt]} owes {namesLine[nameIndex]} ${-1*paymentMatrix[nameIndex][debt]:.2f}")
+                
+        print(f"\t{namesLine[nameIndex]} is owed ${owed:.2f} in total")
+        print()
+    
+    #show total expenditure for sanity check
+    print(f"\t{namesLine[nameIndex]} spent ${(paymentMatrix[nameIndex][nameIndex]):.2f} in total before any debts are settled")
+    
+    #shotw total expenditure after debts are settled
+    if simplify: print(f"\t{namesLine[nameIndex]} will have spent ${(paymentMatrix[nameIndex][nameIndex] - owed + owes):.2f} after debts are settled")
     print()
 
 file.close()
