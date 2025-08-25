@@ -115,7 +115,11 @@ for transaction in file:
                 if simplify: paymentMatrix[paidByIndex][splitterIndex] -= amount / len(splitAmong)
         
     lineNum += 1
-    
+
+for row in paymentMatrix:
+    print(row)
+print()
+
 for nameIndex in range(len(namesLine)):
     owed = sum(paymentMatrix[nameIndex]) - paymentMatrix[nameIndex][nameIndex]
     
@@ -127,12 +131,15 @@ for nameIndex in range(len(namesLine)):
     
     #if they owe money, show how much, to whom, and their total expenditure
     if owed > 0:
-        print(f"{namesLine[nameIndex]} owes ${owed:.2f}")
+        print(f"{namesLine[nameIndex]} owes:")
+        totalDebt = 0
         for debt in range(len(namesLine)):
             if paymentMatrix[nameIndex][debt] > 0 and debt != nameIndex:
                 print(f"\t{namesLine[nameIndex]} owes {namesLine[debt]} ${paymentMatrix[nameIndex][debt]:.2f}")
+                totalDebt += paymentMatrix[nameIndex][debt]
+        print(f"\tFor a total of: ${totalDebt:.2f}")
         print()
-        print(f"\t{namesLine[nameIndex]} has paid ${(paymentMatrix[nameIndex][nameIndex]):.2f} in total")
+        print(f"\t{namesLine[nameIndex]} spent ${(paymentMatrix[nameIndex][nameIndex]):.2f} in total before any debts are settled")
         if simplify: print(f"\t{namesLine[nameIndex]} will have spent ${(paymentMatrix[nameIndex][nameIndex] + owed):.2f} after debts are settled")
     print()
 
