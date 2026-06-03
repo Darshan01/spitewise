@@ -76,7 +76,7 @@ for transaction in file:
         print(f"Error: in line {lineNum} in the input, there are not enough fields. Expected at least 3 fields (payer, description, and amount).")
         file.close()
         exit(1)
-    
+
     paidBy = transaction[0].lower()
     try:
         paidByIndex = people[paidBy]
@@ -84,7 +84,7 @@ for transaction in file:
         print(f"Error: in line {lineNum} in the input, '{paidBy}' is not listed in the names on the first line.")
         file.close()
         exit(1)
-    
+
     #store the transaction amount
     try:
         amount = float(transaction[2])
@@ -92,7 +92,7 @@ for transaction in file:
         print(f"Error: in line {lineNum} in the input, '{transaction[2]}' is not a valid number.")
         file.close()
         exit(1)
-    
+
     #if the transaction is split among certain people, store their indices
     splitAmong = []
     if len(transaction) == 4:
@@ -104,97 +104,96 @@ for transaction in file:
                 print(f"Error: in line {lineNum} in the input, '{name}' is not listed in the names on the first line.")
                 file.close()
                 exit(1)
-            
 
     #simulate the payments in the payment matrix
     for splitterIndex in range(len(namesLine)):
-        
+
         #record the total amount paid by each person in the diagonal
         if splitterIndex == paidByIndex:
             paymentMatrix[splitterIndex][paidByIndex] += amount
             continue
-        
+
         #if there is nobody specified, split among everyone equally
         if len(splitAmong) == 0:
             paymentMatrix[splitterIndex][paidByIndex] += amount / len(namesLine)
             if simplify: paymentMatrix[paidByIndex][splitterIndex] -= amount / len(namesLine)
-        
+
         #otherwise, split among the specified people
         else:
             if splitterIndex in splitAmong:
                 paymentMatrix[splitterIndex][paidByIndex] += amount / len(splitAmong)
                 if simplify: paymentMatrix[paidByIndex][splitterIndex] -= amount / len(splitAmong)
-        
+
     lineNum += 1
 
 if simplify:
     #iterate through each person's list of debts
     for i in range(len(namesLine)):
-        
+
         #iterate through each person they owe money to
         for j in range(len(namesLine)):
-            
+
             if i == j: continue #skip self
-            
+
             #if person i doesn't owe person j money, skip
             if paymentMatrix[i][j] <= 0: continue
-            
+
             for k in range(len(namesLine)):
-                
+
                 if i == k or j == k: continue
-                
+
                 #if person i doesn't owe person k money, skip
                 if paymentMatrix[i][k] <= 0: continue
-                
+
                 #if person k doesn't own person j money, skip
                 if paymentMatrix[k][j] <= 0: continue
-                
+
                 #if person k owes person j more than or equal to what person i owes person k, settle the debt
                 if paymentMatrix[k][j] >= paymentMatrix[i][k]:
-                    
+
                     #person i pays person j the amount they owe person k
-                    paymentMatrix[i][j] += paymentMatrix[i][k] 
+                    paymentMatrix[i][j] += paymentMatrix[i][k]
                     paymentMatrix[j][i] -= paymentMatrix[i][k]
-                    
+
                     #person k no longer owes person j that money
                     paymentMatrix[k][j] -= paymentMatrix[i][k]
                     paymentMatrix[j][k] += paymentMatrix[i][k]
-                    
+
                     #person i no longer owes person k money
                     paymentMatrix[i][k] = 0
                     paymentMatrix[k][i] = 0
 
-    
+
 #output
 for nameIndex in range(len(namesLine)):
     owed = -1*sumSign(paymentMatrix[nameIndex], positive=False, excludeIndex=nameIndex)
     owes = sumSign(paymentMatrix[nameIndex], positive=True, excludeIndex=nameIndex)
-    
+
     print(f"{namesLine[nameIndex]}'s summary:")
-    
+
     #if they owe money, show who they owe it to
     if owes > 0:
         print("\tDebt summary:")
         for debt in range(len(namesLine)):
             if paymentMatrix[nameIndex][debt] > 0 and debt != nameIndex:
                 print(f"\t- {namesLine[nameIndex]} owes {namesLine[debt]} ${paymentMatrix[nameIndex][debt]:.2f}")
-                
+
         print(f"\tFor a total debt of ${owes:.2f}")
         print()
-    
+
     #if they are owed money, show who owes it to them
     if owed > 0:
         print("\tCredit summary:")
         for debt in range(len(namesLine)):
             if paymentMatrix[nameIndex][debt] < 0 and debt != nameIndex:
                 print(f"\t- {namesLine[debt]} owes {namesLine[nameIndex]} ${-1*paymentMatrix[nameIndex][debt]:.2f}")
-                
+
         print(f"\t{namesLine[nameIndex]} is owed ${owed:.2f} in total")
         print()
-    
+
     #show total expenditure for sanity check
     print(f"\t{namesLine[nameIndex]} spent ${(paymentMatrix[nameIndex][nameIndex]):.2f} in total before any debts are settled")
-    
+
     #shotw total expenditure after debts are settled
     if simplify: print(f"\t{namesLine[nameIndex]} will have spent ${(paymentMatrix[nameIndex][nameIndex] - owed + owes):.2f} after debts are settled")
     print()
