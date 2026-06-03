@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}My groups — Spitewise{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2 class="page-title">My groups</h2>
+  <button class="btn btn-primary" onclick="openModal('create-group-modal')">+ New group</button>
+</div>
+
+{% if groups %}
+  <div class="card-grid">
+    {% for group in groups %}
+    <a href="{{ url_for('groups.detail', group_id=group.id) }}" class="group-card">
+      <div class="group-card-header">
+        <span class="group-name">{{ group.name }}</span>
+        <span class="badge">{{ group.txn_count }} txn{{ 's' if group.txn_count != 1 }}</span>
+      </div>
+      <div class="group-members">
+        {% for m in group.members[:5] %}
+          {% if m.avatar %}
+            <img src="{{ m.avatar }}" alt="{{ m.name }}" class="avatar avatar-sm" title="{{ m.name }}">
+          {% else %}
+            <div class="avatar avatar-sm avatar-placeholder" title="{{ m.name }}">{{ m.name[0].upper() }}</div>
+          {% endif %}
+        {% endfor %}
+        {% if group.members | length > 5 %}
+          <div class="avatar avatar-sm avatar-placeholder">+{{ group.members | length - 5 }}</div>
+        {% endif %}
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty-state">
+    <p>No groups yet. Create one to start splitting expenses.</p>
+  </div>
+{% endif %}
+
+<!-- Create group modal -->
+<div id="create-group-modal" class="modal-backdrop" style="display:none" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">New group</h3>
+      <button class="btn-close" onclick="closeModal('create-group-modal')" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <label class="field-label" for="group-name">Group name</label>
+      <input id="group-name" class="input" type="text" placeholder="e.g. Lake George trip" autocomplete="off">
+      <p class="field-hint">You can add members after creating the group.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('create-group-modal')">Cancel</button>
+      <button class="btn btn-primary" id="create-group-btn">Create</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById("create-group-btn").addEventListener("click", async () => {
+  const name = document.getElementById("group-name").value.trim();
+  if (!name) return;
+  const btn = document.getElementById("create-group-btn");
+  btn.disabled = true;
+  btn.textContent = "Creating…";
+  try {
+    const res = await fetch("/groups", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      window.location.href = "/groups/" + data.id;
+    } else {
+      alert(data.error || "Could not create group.");
+      btn.disabled = false;
+      btn.textContent = "Create";
+    }
+  } catch {
+    alert("Network error.");
+    btn.disabled = false;
+    btn.textContent = "Create";
+  }
+});
+
+document.getElementById("group-name").addEventListener("keydown", e => {
+  if (e.key === "Enter") document.getElementById("create-group-btn").click();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,602 @@
+{% extends "base.html" %}
+{% block title %}{{ group.name }} — Spitewise{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <a href="{{ url_for('groups.index') }}" class="back-link">← My groups</a>
+    <h2 class="page-title">{{ group.name }}</h2>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-outline" id="toggle-debts-btn" onclick="toggleSummary()">View debts</button>
+    <button class="btn btn-primary" onclick="openModal('add-txn-modal')">+ Add transaction</button>
+  </div>
+</div>
+
+<!-- Members strip -->
+<div class="members-strip">
+  {% for m in member_docs %}
+    <div class="member-chip">
+      {% if m.avatar %}
+        <img src="{{ m.avatar }}" alt="{{ m.name }}" class="avatar avatar-sm">
+      {% else %}
+        <div class="avatar avatar-sm avatar-placeholder">{{ m.name[0].upper() }}</div>
+      {% endif %}
+      <span>{{ m.name }}</span>
+    </div>
+  {% endfor %}
+  <button class="member-chip member-chip-add" onclick="openModal('add-member-modal')">+ Add member</button>
+</div>
+
+<!-- Transactions list -->
+<div id="txn-list">
+  {% if transactions %}
+    {% for txn in transactions %}
+    <div class="txn-row" data-id="{{ txn.id }}" data-txn="{{ txn | tojson | safe }}" onclick="openTxnModal('{{ txn.id }}')">
+      <div class="txn-info">
+        <span class="txn-desc">{{ txn.description }}</span>
+        <span class="txn-meta">
+          {{ txn.name }} paid
+          {% if txn.split_among_names %}· split with {{ txn.split_among_names | join(', ') }}{% endif %}
+        </span>
+        {% if txn.payer_confirmed and txn.recipient_confirmed %}
+          <span class="txn-verified">✓ Verified</span>
+        {% elif txn.payer_confirmed %}
+          <span class="txn-pending">○ Awaiting approval</span>
+        {% endif %}
+      </div>
+      <div class="txn-right">
+        <span class="txn-amount">${{ "%.2f"|format(txn.amount) }}</span>
+        <button class="btn-icon" onclick="event.stopPropagation(); deleteTxn('{{ txn.id }}')" aria-label="Delete transaction" title="Delete">✕</button>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state" id="empty-txn">
+      <p>No transactions yet. Add one above.</p>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Debt summary panel (hidden until loaded) -->
+<div id="summary-panel" style="display:none">
+  <h3 class="section-title">Debt summary</h3>
+  <div class="summary-controls">
+    <label class="toggle-label">
+      <input type="checkbox" id="simplify-toggle" checked onchange="loadSummary()">
+      Simplify debts
+    </label>
+  </div>
+  <div id="summary-content"></div>
+</div>
+
+<!-- ── Modals ────────────────────────────────────────────────────────────── -->
+
+<!-- Add transaction modal -->
+<div id="add-txn-modal" class="modal-backdrop" style="display:none" role="dialog" aria-modal="true" aria-labelledby="add-txn-title">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <h3 id="add-txn-title">Add transaction</h3>
+      <button class="btn-close" onclick="closeModal('add-txn-modal')" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Receipt scan button -->
+      <!-- <div class="scan-banner">
+        <span>Have a receipt?</span>
+        <label class="btn btn-outline btn-sm scan-label">
+          📷 Scan receipt
+          <input type="file" id="receipt-input" accept="image/*" capture="environment" style="display:none" onchange="handleReceiptScan(this)">
+        </label>
+      </div>
+      <div id="scan-status" class="scan-status" style="display:none"></div> -->
+
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label" for="txn-paid-by">Paid by</label>
+          <select id="txn-paid-by" class="input">
+            {% for m in member_docs %}
+              <option value="{{ m.email }}" data-name="{{m.name}}">{{ m.name }} ({{ m.email }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="txn-amount">Amount ($)</label>
+          <input id="txn-amount" class="input" type="number" step="0.01" min="0.01" placeholder="0.00">
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="txn-description">Description</label>
+        <input id="txn-description" class="input" type="text" placeholder="e.g. Dinner at Olive Garden">
+      </div>
+
+      <div class="field">
+        <label class="field-label">Split among <span class="field-hint-inline">(leave blank for everyone)</span></label>
+        <div class="checkbox-group" id="split-checkboxes">
+          {% for m in member_docs %}
+          <label class="checkbox-label">
+            <input type="checkbox" name="split_among" value="{{ m.email }}" data-name="{{m.name}}"> {{ m.name }} ({{ m.email }})
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('add-txn-modal')">Cancel</button>
+      <button class="btn btn-primary" id="save-txn-btn">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add member modal -->
+<div id="add-member-modal" class="modal-backdrop" style="display:none" role="dialog" aria-modal="true" aria-labelledby="add-member-title">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="add-member-title">Add member</h3>
+      <button class="btn-close" onclick="closeModal('add-member-modal')" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <label class="field-label" for="member-email">Google account email</label>
+      <input id="member-email" class="input" type="email" placeholder="friend@gmail.com" autocomplete="off">
+      <p class="field-hint">They must have signed in to Spitewise at least once before you can add them.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('add-member-modal')">Cancel</button>
+      <button class="btn btn-primary" id="add-member-btn">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- Transaction details modal -->
+<div id="txn-details-modal" class="modal-backdrop" style="display:none" role="dialog" aria-modal="true" aria-labelledby="txn-details-title">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <h3 id="txn-details-title">Transaction details</h3>
+      <button class="btn-close" onclick="closeModal('txn-details-modal')" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label" for="txn-detail-paid-by">Paid by</label>
+          <select id="txn-detail-paid-by" class="input">
+            {% for m in member_docs %}
+              <option value="{{ m.email }}" data-name="{{ m.name }}">{{ m.name }} ({{ m.email }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="txn-detail-amount">Amount ($)</label>
+          <input id="txn-detail-amount" class="input" type="number" step="0.01" min="0.01" placeholder="0.00">
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="txn-detail-description">Description</label>
+        <input id="txn-detail-description" class="input" type="text" placeholder="e.g. Dinner at Olive Garden">
+      </div>
+
+      <div class="field">
+        <label class="field-label">Split among <span class="field-hint-inline">(leave blank for everyone)</span></label>
+        <div class="checkbox-group" id="txn-detail-split-checkboxes">
+          {% for m in member_docs %}
+          <label class="checkbox-label">
+            <input type="checkbox" name="split_among" value="{{ m.email }}" data-name="{{ m.name }}"> {{ m.name }} ({{ m.email }})
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Payment verification section -->
+      <!--<div id="verification-section" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);">
+        <h4 style="font-weight: 600; margin-bottom: 12px;">Payment verification</h4>
+        <div id="verification-status" style="margin-bottom: 12px;"></div>
+        <div id="verification-actions" style="display: flex; gap: 8px;"></div>
+      </div>-->
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('txn-details-modal')">Close</button>
+      <button class="btn btn-primary" id="save-txn-details-btn">Save changes</button>
+    </div>
+  </div>
+</div>
+
+{% if is_creator %}
+<!-- Danger zone -->
+<div class="danger-zone">
+  <h3 class="danger-title">Danger zone</h3>
+  <p>Permanently delete this group and all its transactions.</p>
+  <button class="btn btn-danger" onclick="deleteGroup()">Delete group</button>
+  <p>Permanently delete all transactions (but keep the group and members).</p>
+  <button class="btn btn-danger" onclick="deleteAllTransactions()">Delete all transactions</button>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+const GROUP_ID = "{{ group.id }}";
+const MEMBERS = {{ members | tojson }};
+const CURRENT_USER_EMAIL = "{{ current_user_email }}";
+const transactionCache = {}; // Store transaction data for quick access
+
+// ── Transaction save ─────────────────────────────────────────────────────
+
+document.getElementById("save-txn-btn").addEventListener("click", async () => {
+  const paidBy = document.getElementById("txn-paid-by").value;
+  const name = document.getElementById("txn-paid-by").selectedOptions[0].dataset.name;
+  const amount = document.getElementById("txn-amount").value;
+  const description = document.getElementById("txn-description").value.trim();
+  const checked = Array.from(document.querySelectorAll("#split-checkboxes input:checked")).map(el => el.value);
+  const checked_names = Array.from(document.querySelectorAll("#split-checkboxes input:checked")).map(el => el.dataset.name);
+  if (!description) return showError("Please enter a description.");
+  if (!amount || parseFloat(amount) <= 0) return showError("Please enter a valid amount.");
+
+  const btn = document.getElementById("save-txn-btn");
+  btn.disabled = true; btn.textContent = "Saving…";
+
+  try {
+    const res = await fetch(`/groups/${GROUP_ID}/transactions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ paid_by: paidBy, name: name, amount: parseFloat(amount), description, split_among: checked, split_among_names: checked_names }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      closeModal("add-txn-modal");
+      prependTxn(data);
+      resetTxnForm();
+      hideSummary();
+    } else {
+      showError(data.error || "Could not save transaction.");
+    }
+  } catch { showError("Network error."); }
+  btn.disabled = false; btn.textContent = "Save";
+});
+
+// ── Delete transaction ───────────────────────────────────────────────────
+
+async function deleteTxn(txnId) {
+  if (!confirm("Delete this transaction?")) return;
+  const res = await fetch(`/transactions/${txnId}`, { method: "DELETE" });
+  if (res.ok) {
+    document.querySelector(`.txn-row[data-id="${txnId}"]`)?.remove();
+    hideSummary();
+    if (!document.querySelector(".txn-row")) {
+      document.getElementById("empty-txn") && (document.getElementById("txn-list").innerHTML =
+        '<div class="empty-state" id="empty-txn"><p>No transactions yet.</p></div>');
+    }
+  } else {
+    alert("Could not delete transaction.");
+  }
+}
+
+function prependTxn(txn) {
+  document.getElementById("empty-txn")?.remove();
+  transactionCache[txn.id] = txn; // Cache the transaction data
+  const list = document.getElementById("txn-list");
+  const splitLabel = txn.split_among_names?.length ? `· split with ${txn.split_among_names.join(", ")}` : "";
+  const verificationLabel = (txn.payer_confirmed && txn.recipient_confirmed)
+    ? '<span class="txn-verified">✓ Verified</span>'
+    : txn.payer_confirmed
+    ? '<span class="txn-pending">○ Awaiting approval</span>'
+    : '';
+  const div = document.createElement("div");
+  div.className = "txn-row";
+  div.dataset.id = txn.id;
+  div.dataset.txn = JSON.stringify(txn); // Add data-txn attribute
+  div.innerHTML = `
+    <div class="txn-info">
+      <span class="txn-desc">${esc(txn.description)}</span>
+      <span class="txn-meta">${esc(txn.name)} paid ${esc(splitLabel)}</span>
+      ${verificationLabel}
+    </div>
+    <div class="txn-right">
+      <span class="txn-amount">$${parseFloat(txn.amount).toFixed(2)}</span>
+      <button class="btn-icon" onclick="event.stopPropagation(); deleteTxn('${txn.id}')" aria-label="Delete" title="Delete">✕</button>
+    </div>`;
+  div.onclick = () => openTxnModal(txn.id);
+  list.prepend(div);
+}
+
+// ── Debt summary ─────────────────────────────────────────────────────────
+
+async function loadSummary() {
+  const simplify = document.getElementById("simplify-toggle")?.checked !== false;
+  document.getElementById("summary-panel").style.display = "block";
+  document.getElementById("toggle-debts-btn").textContent = "Hide debts";
+  document.getElementById("summary-content").innerHTML = '<p class="loading">Calculating…</p>';
+  const res = await fetch(`/groups/${GROUP_ID}/summary?simplify=${simplify}`);
+  const data = await res.json();
+  if (!res.ok) {
+    document.getElementById("summary-content").innerHTML = `<p class="error">${esc(data.error)}</p>`;
+    return;
+  }
+  renderSummary(data);
+}
+
+function toggleSummary() {
+  const panel = document.getElementById("summary-panel");
+  if (panel.style.display === "none") {
+    loadSummary();
+  } else {
+    hideSummary();
+  }
+}
+
+function renderSummary(data) {
+  let html = "";
+  for (const person of data.people) {
+    html += `<div class="summary-person">
+      <div class="summary-person-name">${esc(person.name)}</div>`;
+    if (person.debts.length) {
+      html += person.debts.map(d =>
+        `<div class="summary-row debt">owes ${esc(d.to_name)} <strong>$${d.amount.toFixed(2)}</strong></div>`
+      ).join("");
+    }
+    if (person.credits.length) {
+      html += person.credits.map(c =>
+        `<div class="summary-row credit">is owed by ${esc(c.from_name)} <strong>$${c.amount.toFixed(2)}</strong></div>`
+      ).join("");
+    }
+    if (!person.debts.length && !person.credits.length) {
+      html += `<div class="summary-row settled">All settled up ✓</div>`;
+    }
+    html += `<div class="summary-spent">Paid $${person.spent.toFixed(2)} out of pocket · net $${person.net.toFixed(2)}</div>
+    </div>`;
+  }
+  document.getElementById("summary-content").innerHTML = html;
+}
+
+function hideSummary() {
+  const panel = document.getElementById("summary-panel");
+  const btn = document.getElementById("toggle-debts-btn");
+  panel.style.display = "none";
+  btn.textContent = "View debts";
+}
+
+// ── Receipt scanning ─────────────────────────────────────────────────────
+
+async function handleReceiptScan(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const status = document.getElementById("scan-status");
+  status.style.display = "block";
+  status.textContent = "Scanning receipt…";
+  status.className = "scan-status loading";
+
+  const form = new FormData();
+  form.append("image", file);
+  try {
+    const res = await fetch("/scan-receipt", { method: "POST", body: form });
+    const data = await res.json();
+    if (!res.ok || !data.parsed) {
+      status.textContent = data.error || "Could not read receipt. Fill in manually.";
+      status.className = "scan-status error";
+      return;
+    }
+    const p = data.parsed;
+    if (p.description) document.getElementById("txn-description").value = p.description;
+    if (p.amount) document.getElementById("txn-amount").value = p.amount.toFixed(2);
+    status.textContent = `Receipt scanned — ${p.line_items?.length || 0} items detected. Review and save.`;
+    status.className = "scan-status success";
+  } catch {
+    status.textContent = "Network error during scan.";
+    status.className = "scan-status error";
+  }
+  input.value = "";
+}
+
+// ── Add member ───────────────────────────────────────────────────────────
+
+document.getElementById("add-member-btn").addEventListener("click", async () => {
+  const email = document.getElementById("member-email").value.trim();
+  if (!email) return;
+  const btn = document.getElementById("add-member-btn");
+  btn.disabled = true; btn.textContent = "Adding…";
+  const res = await fetch(`/groups/${GROUP_ID}/members`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  const data = await res.json();
+  if (res.ok) {
+    closeModal("add-member-modal");
+    location.reload();
+  } else {
+    alert(data.error || "Could not add member.");
+    btn.disabled = false; btn.textContent = "Add";
+  }
+});
+
+document.getElementById("member-email").addEventListener("keydown", e => {
+  if (e.key === "Enter") document.getElementById("add-member-btn").click();
+});
+
+// ── Delete group ─────────────────────────────────────────────────────────
+
+async function deleteGroup() {
+  if (!confirm("Delete this group and all its transactions? This cannot be undone.")) return;
+  const res = await fetch(`/groups/${GROUP_ID}`, { method: "DELETE" });
+  if (res.ok) window.location.href = "/groups";
+  else alert("Could not delete group.");
+}
+
+async function deleteAllTransactions() {
+  if (!confirm("Delete all transactions in this group? This cannot be undone.")) return;
+  const res = await fetch(`/groups/${GROUP_ID}/transactions`, { method: "DELETE" });
+  if (res.ok) location.reload();
+  else alert("Could not delete transactions.");
+}
+
+// ── Transaction details modal ───────────────────────────────────────────
+
+let currentTxnId = null;
+let currentTxnData = null;
+
+async function openTxnModal(txnId) {
+  currentTxnId = txnId;
+
+  // Try to get from cache first
+  if (transactionCache[txnId]) {
+    currentTxnData = transactionCache[txnId];
+  } else {
+    // Try to get from HTML data attribute
+    const row = document.querySelector(`.txn-row[data-id="${txnId}"]`);
+    if (row && row.dataset.txn) {
+      try {
+        currentTxnData = JSON.parse(row.dataset.txn);
+        transactionCache[txnId] = currentTxnData;
+      } catch (e) {
+        console.error("Failed to parse transaction data", e);
+        // Fall through to fetch from server
+        currentTxnData = null;
+      }
+    }
+  }
+
+  // If still not found, fetch from server
+  if (!currentTxnData) {
+    try {
+      const res = await fetch(`/groups/${GROUP_ID}/transactions`);
+      if (!res.ok) throw new Error("Failed to fetch transactions");
+      const txns = await res.json();
+      const txn = txns.find(t => t.id === txnId);
+      if (!txn) return showError("Transaction not found.");
+      currentTxnData = txn;
+      transactionCache[txnId] = txn;
+    } catch (e) {
+      console.error("Error fetching transaction:", e);
+      return showError("Could not load transaction.");
+    }
+  }
+
+  // Populate form
+  document.getElementById("txn-detail-paid-by").value = currentTxnData.paid_by;
+  document.getElementById("txn-detail-amount").value = currentTxnData.amount;
+  document.getElementById("txn-detail-description").value = currentTxnData.description;
+
+  // Set checkboxes
+  document.querySelectorAll("#txn-detail-split-checkboxes input").forEach(el => {
+    el.checked = currentTxnData.split_among.includes(el.value);
+  });
+
+  // Update verification section
+  //updateVerificationUI();
+
+  openModal("txn-details-modal");
+}
+
+function updateVerificationUI() {
+  const statusDiv = document.getElementById("verification-status");
+  const actionsDiv = document.getElementById("verification-actions");
+
+  let statusHTML = "";
+  if (currentTxnData.payer_confirmed && currentTxnData.recipient_confirmed) {
+    statusHTML = '<p style="color: var(--success); font-weight: 500;">✓ Payment verified and approved</p>';
+  } else if (currentTxnData.payer_confirmed) {
+    statusHTML = '<p style="color: var(--warning); font-weight: 500;">○ Payer marked as paid, awaiting approval</p>';
+  } else {
+    statusHTML = '<p style="color: var(--text-muted);">Payment not yet confirmed</p>';
+  }
+  statusDiv.innerHTML = statusHTML;
+
+  // Build action buttons
+  let actionsHTML = "";
+  const isPayer = currentTxnData.paid_by === CURRENT_USER_EMAIL;
+
+  if (!currentTxnData.payer_confirmed && isPayer) {
+    actionsHTML += '<button class="btn btn-outline" onclick="markTxnAsPaid()">✓ Mark as paid</button>';
+  }
+
+  if (currentTxnData.payer_confirmed && !currentTxnData.recipient_confirmed) {
+    actionsHTML += '<button class="btn btn-primary" onclick="approveTxnPayment()">✓ Approve payment</button>';
+  }
+
+  if (!actionsHTML) {
+    actionsHTML = '<p style="color: var(--text-hint); font-size: 14px;">No actions available</p>';
+  }
+
+  actionsDiv.innerHTML = actionsHTML;
+}
+
+async function markTxnAsPaid() {
+  const res = await fetch(`/transactions/${currentTxnId}/verify`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "mark_paid" }),
+  });
+  const data = await res.json();
+  if (res.ok) {
+    currentTxnData.payer_confirmed = true;
+    updateVerificationUI();
+    hideSummary();
+  } else {
+    showError(data.error || "Could not mark as paid.");
+  }
+}
+
+async function approveTxnPayment() {
+  const res = await fetch(`/transactions/${currentTxnId}/verify`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "approve_payment" }),
+  });
+  const data = await res.json();
+  if (res.ok) {
+    currentTxnData.recipient_confirmed = true;
+    updateVerificationUI();
+    hideSummary();
+  } else {
+    showError(data.error || "Could not approve payment.");
+  }
+}
+
+document.getElementById("save-txn-details-btn").addEventListener("click", async () => {
+  const paidBy = document.getElementById("txn-detail-paid-by").value;
+  const name = document.getElementById("txn-detail-paid-by").selectedOptions[0].dataset.name;
+  const amount = document.getElementById("txn-detail-amount").value;
+  const description = document.getElementById("txn-detail-description").value.trim();
+  const checked = Array.from(document.querySelectorAll("#txn-detail-split-checkboxes input:checked")).map(el => el.value);
+  const checked_names = Array.from(document.querySelectorAll("#txn-detail-split-checkboxes input:checked")).map(el => el.dataset.name);
+
+  if (!description) return showError("Please enter a description.");
+  if (!amount || parseFloat(amount) <= 0) return showError("Please enter a valid amount.");
+
+  const btn = document.getElementById("save-txn-details-btn");
+  btn.disabled = true; btn.textContent = "Saving…";
+
+  try {
+    const res = await fetch(`/transactions/${currentTxnId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ paid_by: paidBy, name: name, amount: parseFloat(amount), description, split_among: checked, split_among_names: checked_names }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      closeModal("txn-details-modal");
+      // Reload transactions
+      location.reload();
+    } else {
+      showError(data.error || "Could not save transaction.");
+    }
+  } catch { showError("Network error."); }
+  btn.disabled = false; btn.textContent = "Save changes";
+});
+
+// ── Helpers ──────────────────────────────────────────────────────────────
+
+function resetTxnForm() {
+  document.getElementById("txn-amount").value = "";
+  document.getElementById("txn-description").value = "";
+  document.querySelectorAll("#split-checkboxes input").forEach(el => el.checked = false);
+  //document.getElementById("scan-status").style.display = "none";
+}
+
+function showError(msg) { alert(msg); }
+
+function esc(str) {
+  return String(str ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+</script>
+{% endblock %}
