@@ -45,7 +45,7 @@ def summary(group_id):
         if str(mid) in id_to_doc
     }
 
-    # Load transactions with emails
+    # Load transactions — exclude ones that are fully verified (paid and approved)
     txns_raw = list(db.transactions.find({"group_id": group["_id"]}))
     transactions = [
         {
@@ -54,6 +54,7 @@ def summary(group_id):
             "split_among": t.get("split_among", []),
         }
         for t in txns_raw
+        if not (t.get("payer_confirmed") and t.get("recipient_confirmed"))
     ]
 
     # Read simplify param (defaults to true)

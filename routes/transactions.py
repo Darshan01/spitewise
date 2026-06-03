@@ -42,6 +42,7 @@ def _serialize(txn):
         "amount": txn["amount"],
         "split_among": txn.get("split_among", []),
         "split_among_names": txn.get("split_among_names", []),
+        "confirmed_payers": txn.get("confirmed_payers", []),
         "payer_confirmed": txn.get("payer_confirmed", False),
         "recipient_confirmed": txn.get("recipient_confirmed", False),
         "created_at": txn.get("created_at", "").isoformat() if txn.get("created_at") else "",
@@ -215,7 +216,17 @@ def delete_transaction(txn_id):
 @transactions_bp.route("/transactions/<txn_id>/verify", methods=["POST"])
 @login_required
 def verify_payment(txn_id):
-    """Mark a transaction as verified (paid and approved)."""
+    """
+    Two-step verification:
+      - action "confirm_payment": a debtor confirms they have paid their share.
+        Anyone who owes money on this transaction can do this.
+        Tracked in `confirmed_payers` (list of emails who have confirmed).
+        Once all debtors have confirmed, `payer_confirmed` is set True automatically.
+      - action "approve_payment": the person who originally paid confirms they
+        received the money from everyone. Sets `recipient_confirmed` = True.
+        Only available once all debtors have confirmed.
+    A transaction is fully verified when both flags are True.
+    """
     db = get_db()
     txn = _txn_or_404(txn_id, db)
 
@@ -224,25 +235,67 @@ def verify_payment(txn_id):
         abort(403)
 
     data = request.get_json(silent=True) or {}
-    action = data.get("action")  # "mark_paid" or "approve_payment"
+    action = data.get("action")
 
-    if action == "mark_paid":
-        # Payer marks the transaction as paid
-        if txn["paid_by"] != current_user.email:
-            return jsonify({"error": "Only the payer can mark this as paid."}), 403
+    if action == "confirm_payment":
+        # Any debtor can confirm they paid their share.
+        # The payer of the transaction cannot confirm their own payment.
+        if current_user.email == txn["paid_by"]:
+            return jsonify({"error": "You paid for this transaction — use 'approve_payment' once everyone has confirmed."}), 403
+
+        confirmed = txn.get("confirmed_payers", [])
+        if current_user.email in confirmed:
+            return jsonify({"error": "You have already confirmed this payment."}), 409
+
+        confirmed.append(current_user.email)
+
+        # Work out who actually owes money on this transaction
+        split_among = txn.get("split_among", [])
+        members_raw = list(db.users.find({"_id": {"$in": group.get("member_ids", [])}}))
+        all_member_emails = [m["email"] for m in members_raw]
+
+        # Debtors = split_among (if specified) else everyone except the payer
+        if split_among:
+            debtors = [e for e in split_among if e != txn["paid_by"]]
+        else:
+            debtors = [e for e in all_member_emails if e != txn["paid_by"]]
+
+        all_confirmed = all(d in confirmed for d in debtors)
+
         db.transactions.update_one(
             {"_id": txn["_id"]},
-            {"$set": {"payer_confirmed": True}}
+            {"$set": {
+                "confirmed_payers": confirmed,
+                "payer_confirmed": all_confirmed,
+            }}
         )
-        return jsonify({"message": "Marked as paid"}), 200
+        updated = db.transactions.find_one({"_id": txn["_id"]})
+        return jsonify({
+            "message": "Payment confirmed." + (" All debtors have confirmed — the payer can now approve." if all_confirmed else ""),
+            "transaction": _serialize(updated),
+            "all_debtors_confirmed": all_confirmed,
+        }), 200
 
     elif action == "approve_payment":
-        # Recipient approves the payment
+        # Only the original payer can approve receipt of money.
+        if current_user.email != txn["paid_by"]:
+            return jsonify({"error": "Only the person who paid can approve receipt of money."}), 403
+
+        if not txn.get("payer_confirmed"):
+            return jsonify({"error": "Not all debtors have confirmed their payments yet."}), 400
+
+        if txn.get("recipient_confirmed"):
+            return jsonify({"error": "This transaction is already fully verified."}), 409
+
         db.transactions.update_one(
             {"_id": txn["_id"]},
             {"$set": {"recipient_confirmed": True}}
         )
-        return jsonify({"message": "Payment approved"}), 200
+        updated = db.transactions.find_one({"_id": txn["_id"]})
+        return jsonify({
+            "message": "Payment approved. This transaction is now fully verified and removed from debt calculations.",
+            "transaction": _serialize(updated),
+        }), 200
 
     else:
-        return jsonify({"error": "Invalid action"}), 400
+        return jsonify({"error": "Invalid action. Use 'confirm_payment' or 'approve_payment'."}), 400

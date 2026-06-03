@@ -106,6 +106,9 @@ def detail(group_id):
             "amount": t["amount"],
             "split_among": t.get("split_among", []),
             "split_among_names": t.get("split_among_names", []),
+            "confirmed_payers": t.get("confirmed_payers", []),
+            "payer_confirmed": t.get("payer_confirmed", False),
+            "recipient_confirmed": t.get("recipient_confirmed", False),
             "created_at": t.get("created_at"),
         })
 

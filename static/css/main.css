@@ -158,18 +158,12 @@ body {
   display: flex; justify-content: space-between; align-items: center;
   padding: 12px 14px; background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius-sm); margin-bottom: 6px; gap: 12px;
-  cursor: pointer; transition: background-color 0.2s, border-color 0.2s;
-}
-.txn-row:hover {
-  background-color: var(--accent-light); border-color: var(--accent);
 }
 .txn-info { flex: 1; min-width: 0; }
 .txn-desc { display: block; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .txn-meta { font-size: 13px; color: var(--text-muted); }
 .txn-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .txn-amount { font-weight: 600; font-variant-numeric: tabular-nums; }
-.txn-verified { display: inline-block; font-size: 12px; color: var(--success); font-weight: 500; margin-top: 4px; }
-.txn-pending { display: inline-block; font-size: 12px; color: var(--warning-light); font-weight: 500; margin-top: 4px; }
 
 /* ─── Summary panel ──────────────────────────────────────────────────────── */
 #summary-panel {
@@ -288,7 +282,30 @@ body {
 .alert-error { background: var(--danger-light); color: var(--danger); }
 .alert-success { background: var(--success-light); color: var(--success); }
 
-/* ─── Empty state ────────────────────────────────────────────────────────── */
+/* ─── Transaction verification badges ───────────────────────────────────── */
+.txn-badge {
+  display: inline-block; font-size: 11px; font-weight: 500;
+  padding: 2px 8px; border-radius: 20px; margin-top: 3px;
+}
+.txn-badge--verified   { background: var(--success-light); color: var(--success); }
+.txn-badge--pending    { background: var(--warning-light); color: #854d0e; }
+.txn-badge--partial    { background: var(--accent-light);  color: var(--accent); }
+.txn-badge--unconfirmed{ background: var(--bg);            color: var(--text-hint); }
+
+/* Verified transaction row — subtle strikethrough feel */
+.txn-row--verified { opacity: .72; }
+.txn-row--verified:hover { opacity: 1; }
+.txn-amount--settled { text-decoration: line-through; color: var(--text-hint); }
+
+/* ─── Verification checklist in modal ────────────────────────────────────── */
+.verify-row {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; padding: 5px 0;
+}
+.verify-icon { font-size: 14px; flex-shrink: 0; width: 18px; }
+.verify-name { flex: 1; font-weight: 500; }
+.verify-role { font-weight: 400; color: var(--text-hint); }
+.verify-label { font-size: 12px; white-space: nowrap; }
 .empty-state { text-align: center; padding: 40px 16px; color: var(--text-muted); font-size: 14px; }
 
 /* ─── Misc helpers ───────────────────────────────────────────────────────── */

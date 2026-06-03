@@ -32,7 +32,7 @@
 <div id="txn-list">
   {% if transactions %}
     {% for txn in transactions %}
-    <div class="txn-row" data-id="{{ txn.id }}" data-txn="{{ txn | tojson | safe }}" onclick="openTxnModal('{{ txn.id }}')">
+    <div class="txn-row {% if txn.payer_confirmed and txn.recipient_confirmed %}txn-row--verified{% endif %}" data-id="{{ txn.id }}" data-txn="{{ txn | tojson | safe }}" onclick="openTxnModal('{{ txn.id }}')">
       <div class="txn-info">
         <span class="txn-desc">{{ txn.description }}</span>
         <span class="txn-meta">
@@ -40,13 +40,15 @@
           {% if txn.split_among_names %}· split with {{ txn.split_among_names | join(', ') }}{% endif %}
         </span>
         {% if txn.payer_confirmed and txn.recipient_confirmed %}
-          <span class="txn-verified">✓ Verified</span>
+          <span class="txn-badge txn-badge--verified">✓ Settled</span>
         {% elif txn.payer_confirmed %}
-          <span class="txn-pending">○ Awaiting approval</span>
+          <span class="txn-badge txn-badge--pending">⏳ Awaiting receipt confirmation</span>
+        {% elif txn.confirmed_payers | length > 0 %}
+          <span class="txn-badge txn-badge--partial">◑ {{ txn.confirmed_payers | length }} of {{ (txn.split_among | length) or (member_docs | length - 1) }} confirmed</span>
         {% endif %}
       </div>
       <div class="txn-right">
-        <span class="txn-amount">${{ "%.2f"|format(txn.amount) }}</span>
+        <span class="txn-amount {% if txn.payer_confirmed and txn.recipient_confirmed %}txn-amount--settled{% endif %}">${{ "%.2f"|format(txn.amount) }}</span>
         <button class="btn-icon" onclick="event.stopPropagation(); deleteTxn('{{ txn.id }}')" aria-label="Delete transaction" title="Delete">✕</button>
       </div>
     </div>
@@ -188,11 +190,15 @@
       </div>
 
       <!-- Payment verification section -->
-      <!--<div id="verification-section" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);">
-        <h4 style="font-weight: 600; margin-bottom: 12px;">Payment verification</h4>
-        <div id="verification-status" style="margin-bottom: 12px;"></div>
-        <div id="verification-actions" style="display: flex; gap: 8px;"></div>
-      </div>-->
+      <div id="verification-section" style="margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border);">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+          <h4 style="font-weight:600; font-size:14px; margin:0;">Payment verification</h4>
+          <span id="verification-badge"></span>
+        </div>
+        <div id="verification-checklist" style="margin-bottom:14px; display:flex; flex-direction:column; gap:6px;"></div>
+        <div id="verification-actions" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
+        <p id="verification-note" style="font-size:12px; color:var(--text-hint); margin-top:10px;"></p>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('txn-details-modal')">Close</button>
@@ -218,7 +224,48 @@
 const GROUP_ID = "{{ group.id }}";
 const MEMBERS = {{ members | tojson }};
 const CURRENT_USER_EMAIL = "{{ current_user_email }}";
-const transactionCache = {}; // Store transaction data for quick access
+const MEMBER_DOCS = {{ member_docs | tojson }};
+const transactionCache = {};
+
+// Update a transaction row in-place after verification changes
+function updateTxnRow(txn) {
+  const row = document.querySelector(`.txn-row[data-id="${txn.id}"]`);
+  if (!row) return;
+
+  // Update data attribute so re-opening the modal uses fresh data
+  row.dataset.txn = JSON.stringify(txn);
+
+  const fullyVerified = txn.payer_confirmed && txn.recipient_confirmed;
+  const allDebtorsConfirmed = txn.payer_confirmed;
+  const confirmedCount = (txn.confirmed_payers || []).length;
+
+  // Update row class
+  row.classList.toggle("txn-row--verified", fullyVerified);
+
+  // Update the amount style
+  const amountEl = row.querySelector(".txn-amount");
+  if (amountEl) amountEl.classList.toggle("txn-amount--settled", fullyVerified);
+
+  // Remove any existing badge and re-render
+  row.querySelector(".txn-badge")?.remove();
+  const infoEl = row.querySelector(".txn-info");
+  if (infoEl) {
+    let badgeHTML = "";
+    if (fullyVerified) {
+      badgeHTML = '<span class="txn-badge txn-badge--verified">✓ Settled</span>';
+    } else if (allDebtorsConfirmed) {
+      badgeHTML = '<span class="txn-badge txn-badge--pending">⏳ Awaiting receipt confirmation</span>';
+    } else if (confirmedCount > 0) {
+      const splitAmong = txn.split_among || [];
+      const allEmails = MEMBER_DOCS.map(m => m.email);
+      const debtors = splitAmong.length
+        ? splitAmong.filter(e => e !== txn.paid_by)
+        : allEmails.filter(e => e !== txn.paid_by);
+      badgeHTML = `<span class="txn-badge txn-badge--partial">◑ ${confirmedCount}/${debtors.length} confirmed</span>`;
+    }
+    infoEl.insertAdjacentHTML("beforeend", badgeHTML);
+  }
+}
 
 // ── Transaction save ─────────────────────────────────────────────────────
 
@@ -482,61 +529,133 @@ async function openTxnModal(txnId) {
   });
 
   // Update verification section
-  //updateVerificationUI();
+  updateVerificationUI();
 
   openModal("txn-details-modal");
 }
 
 function updateVerificationUI() {
-  const statusDiv = document.getElementById("verification-status");
+  const txn = currentTxnData;
+  const badge = document.getElementById("verification-badge");
+  const checklist = document.getElementById("verification-checklist");
   const actionsDiv = document.getElementById("verification-actions");
+  const note = document.getElementById("verification-note");
+  const saveBtn = document.getElementById("save-txn-details-btn");
 
-  let statusHTML = "";
-  if (currentTxnData.payer_confirmed && currentTxnData.recipient_confirmed) {
-    statusHTML = '<p style="color: var(--success); font-weight: 500;">✓ Payment verified and approved</p>';
-  } else if (currentTxnData.payer_confirmed) {
-    statusHTML = '<p style="color: var(--warning); font-weight: 500;">○ Payer marked as paid, awaiting approval</p>';
+  // Work out who the debtors are for this transaction
+  const splitAmong = txn.split_among || [];
+  // member_docs is available from the template as MEMBER_DOCS
+  const allMemberEmails = MEMBER_DOCS.map(m => m.email);
+  const debtors = splitAmong.length
+    ? splitAmong.filter(e => e !== txn.paid_by)
+    : allMemberEmails.filter(e => e !== txn.paid_by);
+
+  const confirmedPayers = txn.confirmed_payers || [];
+  const allDebtorsConfirmed = txn.payer_confirmed;   // backend sets this when all confirm
+  const fullyVerified = txn.payer_confirmed && txn.recipient_confirmed;
+
+  // ── Badge ──────────────────────────────────────────────────────────────
+  if (fullyVerified) {
+    badge.innerHTML = '<span class="txn-badge txn-badge--verified">✓ Settled</span>';
+  } else if (allDebtorsConfirmed) {
+    badge.innerHTML = '<span class="txn-badge txn-badge--pending">⏳ Awaiting receipt confirmation</span>';
+  } else if (confirmedPayers.length > 0) {
+    badge.innerHTML = `<span class="txn-badge txn-badge--partial">◑ ${confirmedPayers.length}/${debtors.length} confirmed</span>`;
   } else {
-    statusHTML = '<p style="color: var(--text-muted);">Payment not yet confirmed</p>';
+    badge.innerHTML = '<span class="txn-badge txn-badge--unconfirmed">○ Unconfirmed</span>';
   }
-  statusDiv.innerHTML = statusHTML;
 
-  // Build action buttons
+  // ── Checklist: one row per debtor ──────────────────────────────────────
+  let checklistHTML = "";
+
+  // Show the payer row (who is owed money)
+  const payerName = MEMBER_DOCS.find(m => m.email === txn.paid_by)?.name || txn.paid_by;
+  const payerIcon = txn.recipient_confirmed ? "✓" : "○";
+  const payerStyle = txn.recipient_confirmed ? "color:var(--success)" : "color:var(--text-hint)";
+  checklistHTML += `<div class="verify-row">
+    <span class="verify-icon" style="${payerStyle}">${payerIcon}</span>
+    <span class="verify-name">${esc(payerName)} <span class="verify-role">(paid)</span></span>
+    <span class="verify-label" style="${payerStyle}">${txn.recipient_confirmed ? "Confirmed receipt" : "Waiting to confirm receipt"}</span>
+  </div>`;
+
+  // One row per debtor
+  for (const email of debtors) {
+    const memberDoc = MEMBER_DOCS.find(m => m.email === email);
+    const name = memberDoc?.name || email;
+    const confirmed = confirmedPayers.includes(email);
+    const icon = confirmed ? "✓" : "○";
+    const style = confirmed ? "color:var(--success)" : "color:var(--text-hint)";
+    checklistHTML += `<div class="verify-row">
+      <span class="verify-icon" style="${style}">${icon}</span>
+      <span class="verify-name">${esc(name)}</span>
+      <span class="verify-label" style="${style}">${confirmed ? "Confirmed payment" : "Yet to confirm"}</span>
+    </div>`;
+  }
+  checklist.innerHTML = checklistHTML;
+
+  // ── Action buttons ─────────────────────────────────────────────────────
   let actionsHTML = "";
-  const isPayer = currentTxnData.paid_by === CURRENT_USER_EMAIL;
+  const iAmPayer = CURRENT_USER_EMAIL === txn.paid_by;
+  const iAmDebtor = debtors.includes(CURRENT_USER_EMAIL);
+  const iHaveConfirmed = confirmedPayers.includes(CURRENT_USER_EMAIL);
 
-  if (!currentTxnData.payer_confirmed && isPayer) {
-    actionsHTML += '<button class="btn btn-outline" onclick="markTxnAsPaid()">✓ Mark as paid</button>';
-  }
+  if (!fullyVerified) {
+    if (iAmDebtor && !iHaveConfirmed) {
+      actionsHTML += `<button class="btn btn-primary" onclick="confirmMyPayment()">✓ Confirm I've paid</button>`;
+    } else if (iAmDebtor && iHaveConfirmed) {
+      actionsHTML += `<button class="btn btn-outline" disabled>✓ You've confirmed</button>`;
+    }
 
-  if (currentTxnData.payer_confirmed && !currentTxnData.recipient_confirmed) {
-    actionsHTML += '<button class="btn btn-primary" onclick="approveTxnPayment()">✓ Approve payment</button>';
+    if (iAmPayer && allDebtorsConfirmed && !txn.recipient_confirmed) {
+      actionsHTML += `<button class="btn btn-primary" onclick="approveReceipt()">✓ Confirm I received payment</button>`;
+    }
   }
 
   if (!actionsHTML) {
-    actionsHTML = '<p style="color: var(--text-hint); font-size: 14px;">No actions available</p>';
+    if (fullyVerified) {
+      actionsHTML = `<p style="color:var(--success); font-size:14px;">✓ This transaction is fully settled and excluded from debt calculations.</p>`;
+    } else if (!iAmPayer && !iAmDebtor) {
+      actionsHTML = `<p style="color:var(--text-hint); font-size:13px;">You are not directly involved in this transaction.</p>`;
+    }
   }
-
   actionsDiv.innerHTML = actionsHTML;
+
+  // ── Footer note ────────────────────────────────────────────────────────
+  note.textContent = fullyVerified
+    ? ""
+    : "Once all debtors confirm and the payer approves, this transaction is removed from debt calculations.";
+
+  // Disable editing on fully verified transactions
+  saveBtn.disabled = fullyVerified;
+  saveBtn.title = fullyVerified ? "Cannot edit a settled transaction" : "";
 }
 
-async function markTxnAsPaid() {
+async function confirmMyPayment() {
+  const btn = document.querySelector("#verification-actions button");
+  if (btn) { btn.disabled = true; btn.textContent = "Confirming…"; }
+
   const res = await fetch(`/transactions/${currentTxnId}/verify`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "mark_paid" }),
+    body: JSON.stringify({ action: "confirm_payment" }),
   });
   const data = await res.json();
   if (res.ok) {
-    currentTxnData.payer_confirmed = true;
+    currentTxnData = data.transaction;
+    transactionCache[currentTxnId] = currentTxnData;
     updateVerificationUI();
+    updateTxnRow(currentTxnData);
     hideSummary();
   } else {
-    showError(data.error || "Could not mark as paid.");
+    showError(data.error || "Could not confirm payment.");
+    if (btn) { btn.disabled = false; btn.textContent = "✓ Confirm I've paid"; }
   }
 }
 
-async function approveTxnPayment() {
+async function approveReceipt() {
+  const btns = document.querySelectorAll("#verification-actions button");
+  btns.forEach(b => { b.disabled = true; b.textContent = "Approving…"; });
+
   const res = await fetch(`/transactions/${currentTxnId}/verify`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -544,11 +663,14 @@ async function approveTxnPayment() {
   });
   const data = await res.json();
   if (res.ok) {
-    currentTxnData.recipient_confirmed = true;
+    currentTxnData = data.transaction;
+    transactionCache[currentTxnId] = currentTxnData;
     updateVerificationUI();
+    updateTxnRow(currentTxnData);
     hideSummary();
   } else {
     showError(data.error || "Could not approve payment.");
+    btns.forEach(b => { b.disabled = false; });
   }
 }
 
