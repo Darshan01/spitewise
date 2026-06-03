@@ -57,5 +57,5 @@ app = create_app()
 
 if __name__ == "__main__":
     debug = os.environ.get("FLASK_ENV") != "production"
-    PORT = int(os.environ.get("PORT", 5000))
+    PORT = int(os.environ.get("PORT", 10000))
     app.run(debug=debug, port=PORT)
