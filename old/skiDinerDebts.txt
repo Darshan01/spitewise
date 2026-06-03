@@ -1,0 +1,61 @@
+Darshan's summary:
+	Debt summary:
+	- Darshan owes Krithish $1.08
+	For a total debt of $1.08
+
+	Credit summary:
+	- Sam owes Darshan $2.83
+	- Bargs owes Darshan $2.83
+	- Ayush owes Darshan $5.83
+	Darshan is owed $11.50 in total
+
+	Darshan spent $20.00 in total before any debts are settled
+	Darshan will have spent $9.58 after debts are settled
+
+Shehzad's summary:
+	Debt summary:
+	- Shehzad owes Krithish $12.58
+	For a total debt of $12.58
+
+	Shehzad spent $0.00 in total before any debts are settled
+	Shehzad will have spent $12.58 after debts are settled
+
+Krithish's summary:
+	Credit summary:
+	- Darshan owes Krithish $1.08
+	- Shehzad owes Krithish $12.58
+	- Sam owes Krithish $13.70
+	- Bargs owes Krithish $6.75
+	- Ayush owes Krithish $6.75
+	Krithish is owed $40.87 in total
+
+	Krithish spent $50.45 in total before any debts are settled
+	Krithish will have spent $9.58 after debts are settled
+
+Sam's summary:
+	Debt summary:
+	- Sam owes Darshan $2.83
+	- Sam owes Krithish $13.70
+	For a total debt of $16.53
+
+	Sam spent $0.00 in total before any debts are settled
+	Sam will have spent $16.53 after debts are settled
+
+Bargs's summary:
+	Debt summary:
+	- Bargs owes Darshan $2.83
+	- Bargs owes Krithish $6.75
+	For a total debt of $9.58
+
+	Bargs spent $0.00 in total before any debts are settled
+	Bargs will have spent $9.58 after debts are settled
+
+Ayush's summary:
+	Debt summary:
+	- Ayush owes Darshan $5.83
+	- Ayush owes Krithish $6.75
+	For a total debt of $12.58
+
+	Ayush spent $0.00 in total before any debts are settled
+	Ayush will have spent $12.58 after debts are settled
+

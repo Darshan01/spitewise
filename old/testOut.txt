@@ -1,0 +1,79 @@
+Darshan's summary:
+	Credit summary:
+	- Deepika owes Darshan $198.60
+	- Shehzad owes Darshan $97.35
+	- Krithish owes Darshan $141.22
+	- Sam owes Darshan $205.30
+	- Bargs owes Darshan $208.79
+	- Ayush owes Darshan $208.79
+	- Mauli owes Darshan $211.30
+	- Kavya owes Darshan $64.87
+	Darshan is owed $1336.23 in total
+
+	Darshan spent $1567.01 in total before any debts are settled
+	Darshan will have spent $230.78 after debts are settled
+
+Deepika's summary:
+	Debt summary:
+	- Deepika owes Darshan $198.60
+	For a total debt of $198.60
+
+	Deepika spent $0.00 in total before any debts are settled
+	Deepika will have spent $198.60 after debts are settled
+
+Shehzad's summary:
+	Debt summary:
+	- Shehzad owes Darshan $97.35
+	For a total debt of $97.35
+
+	Shehzad spent $101.95 in total before any debts are settled
+	Shehzad will have spent $199.30 after debts are settled
+
+Krithish's summary:
+	Debt summary:
+	- Krithish owes Darshan $141.22
+	For a total debt of $141.22
+
+	Krithish spent $50.09 in total before any debts are settled
+	Krithish will have spent $191.31 after debts are settled
+
+Sam's summary:
+	Debt summary:
+	- Sam owes Darshan $205.30
+	For a total debt of $205.30
+
+	Sam spent $0.00 in total before any debts are settled
+	Sam will have spent $205.30 after debts are settled
+
+Bargs's summary:
+	Debt summary:
+	- Bargs owes Darshan $208.79
+	For a total debt of $208.79
+
+	Bargs spent $0.00 in total before any debts are settled
+	Bargs will have spent $208.79 after debts are settled
+
+Ayush's summary:
+	Debt summary:
+	- Ayush owes Darshan $208.79
+	For a total debt of $208.79
+
+	Ayush spent $0.00 in total before any debts are settled
+	Ayush will have spent $208.79 after debts are settled
+
+Mauli's summary:
+	Debt summary:
+	- Mauli owes Darshan $211.30
+	For a total debt of $211.30
+
+	Mauli spent $0.00 in total before any debts are settled
+	Mauli will have spent $211.30 after debts are settled
+
+Kavya's summary:
+	Debt summary:
+	- Kavya owes Darshan $64.87
+	For a total debt of $64.87
+
+	Kavya spent $155.92 in total before any debts are settled
+	Kavya will have spent $220.79 after debts are settled
+

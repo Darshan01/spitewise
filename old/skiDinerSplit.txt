@@ -1,0 +1,9 @@
+Darshan, Shehzad, Krithish, Sam, Bargs, Ayush
+
+darshan - decaf coffee - 3.00 - Ayush
+darshan - tax/tip - 17.00
+krithish - hot coco - 6.00 - Bargs, Shehzad
+krithish - mac and cheese - 9.95 - Sam
+krithish - curly fries - 7.50
+krithish - first wings - 15.00
+krithish - second wings - 12.00 - Darshan, Shehzad, Krithish, Ayush 

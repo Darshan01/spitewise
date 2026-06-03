@@ -1,0 +1,21 @@
+Darshan, Deepika, Shehzad, Krithish, Sam, Bargs, Ayush, Mauli, Kavya
+
+darshan - rafting - 430.0
+shehzad - costco groceries - 91.95
+darshan - shoprite groceries - 77.1
+kavya - smirnoff party pack - 17.99 - Bargs, Ayush
+kavya - mikes hard variety pack - 19.99 - mauli
+kavya - bacardi - 20.99 - darshan
+kavya - yuengling six pack - 8.99 - bargs, Ayush
+kavya - twea variety pack - 18.99 - Kavya
+kavya - lemondrop cut water - 13.99 - Sam
+kavya - whisky sour cutwater - 13.99 - Shehzad, darshan
+kavya - simply spiked - 20.99 - Kavya, darshan
+darshan - coke - 7.29 - Deepika
+darshan - pina cola mix - 7.99 - bargs, Ayush
+darshan - mango juice - 1.99 - darshan, shehzad
+shehzad - ice - 10.00
+darshan - saturday groceries - 33.80
+krithish - rafting photos - 35.00
+kavya - rafting tip - 20.00
+krithish - gatorade run - 15.09
