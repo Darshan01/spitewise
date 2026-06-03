@@ -21,7 +21,8 @@ groups_bp = Blueprint("groups", __name__)
 
 
 def _group_or_404(group_id, db=None):
-    db = db or get_db()
+    if db is None:
+        db = get_db()
     group = db.groups.find_one({"_id": oid(group_id)})
     if not group:
         abort(404)
